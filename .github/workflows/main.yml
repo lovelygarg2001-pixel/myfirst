@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Market - Buy & Sell</title>
+    <style>
+        :root { --primary: #2ea44f; --dark: #24292e; --light: #f6f8fa; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; margin: 0; background: var(--light); }
+        header { background: var(--dark); color: white; padding: 1rem; text-align: center; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        input, button, textarea { width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.9; }
+        .item-list { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+        .product { border: 1px solid #eee; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .product img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+        .calc-box { background: #333; color: #00ff00; font-family: monospace; padding: 15px; border-radius: 5px; }
+        #calc-display { background: #000; padding: 10px; text-align: right; margin-bottom: 10px; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Marketplace @ GitHub</h1>
+    <p>Upload as a Seller | Buy as a Customer</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Seller Dashboard</h2>
+        <p>Add a new item to the store:</p>
+        <input type="text" id="itemName" placeholder="Item Name">
+        <input type="number" id="itemPrice" placeholder="Price ($)">
+        <input type="file" id="itemImage" accept="image/*">
+        <button onclick="addItem()">List Item for Sale</button>
+        
+        <h3>Calculator (Profit/Price Helper)</h3>
+        <div class="calc-box">
+            <div id="calc-display">0</div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+                <button onclick="calc(7)">7</button><button onclick="calc(8)">8</button><button onclick="calc(9)">9</button><button onclick="calc('/')">/</button>
+                <button onclick="calc(4)">4</button><button onclick="calc(5)">5</button><button onclick="calc(6)">6</button><button onclick="calc('*')">*</button>
+                <button onclick="calc(1)">1</button><button onclick="calc(2)">2</button><button onclick="calc(3)">3</button><button onclick="calc('-')">-</button>
+                <button onclick="calc(0)">0</button><button onclick="clr()">C</button><button onclick="res()">=</button><button onclick="calc('+')">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Buyer Gallery</h2>
+        <div id="market-items" class="item-list">
+            <p style="color: #666;">No items listed yet...</p>
+        </div>
+        
+        <hr>
+        <h2>Your Shopping Cart</h2>
+        <div id="cart-list"></div>
+        <p><strong>Total: $<span id="cart-total">0</span></strong></p>
+        <button style="background: #24292e;">Checkout</button>
+    </div>
+</div>
+
+<script>
+    let items = [];
+    let cart = [];
+    let calcVal = "";
+
+    function addItem() {
+        const name = document.getElementById('itemName').value;
+        const price = document.getElementById('itemPrice').value;
+        const fileInput = document.getElementById('itemImage');
+        
+        if(!name || !price || !fileInput.files[0]) return alert("Please fill all fields");
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const item = { id: Date.now(), name, price: parseFloat(price), img: e.target.result };
+            items.push(item);
+            renderMarket();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    function renderMarket() {
+        const container = document.getElementById('market-items');
+        container.innerHTML = items.map(item => `
+            <div class="product">
+                <img src="${item.img}">
+                <div style="flex-grow:1"><strong>${item.name}</strong><br>$${item.price}</div>
+                <button onclick="addToCart(${item.id})" style="width:auto; padding:5px 10px;">Add</button>
+            </div>
+        `).join('');
+    }
+
+    function addToCart(id) {
+        const item = items.find(i => i.id === id);
+        cart.push(item);
+        renderCart();
+    }
+
+    function renderCart() {
+        const list = document.getElementById('cart-list');
+        const totalDisp = document.getElementById('cart-total');
+        list.innerHTML = cart.map(i => `<div>${i.name} - $${i.price}</div>`).join('');
+        const total = cart.reduce((sum, i) => sum + i.price, 0);
+        totalDisp.innerText = total.toFixed(2);
+    }
+
+    // Calculator Logic
+    function calc(v) { calcVal += v; document.getElementById('calc-display').innerText = calcVal; }
+    function clr() { calcVal = ""; document.getElementById('calc-display').innerText = "0"; }
+    function res() { 
+        try { calcVal = eval(calcVal).toString(); document.getElementById('calc-display').innerText = calcVal; } 
+        catch { clr(); }
+    }
+</script>
+
+</body>
+</html>
